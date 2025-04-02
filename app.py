@@ -63,13 +63,41 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+@st.cache_resource
 def load_model():
     try:
-        model = RetinopathyModel()
-        model = RetinopathyModel.load_model('retinopathy_model.joblib', 'retinopathy_scaler.joblib')
-        return model
+        # First try loading the joblib model
+        if os.path.exists('retinopathy_model.joblib'):
+            model = RetinopathyModel.load_model('retinopathy_model.joblib', 'retinopathy_scaler.joblib')
+            return model
+        # Then try loading the h5 model
+        elif os.path.exists('dr_model.h5'):
+            from tensorflow.keras.models import load_model
+            model = RetinopathyModel()
+            model.model = load_model('dr_model.h5')
+            return model
+        else:
+            st.markdown("""
+            <div class="error-box">
+                <h3>Model Not Found</h3>
+                <p>No model file found. Looking for either:</p>
+                <ul>
+                    <li>retinopathy_model.joblib</li>
+                    <li>dr_model.h5</li>
+                </ul>
+                <p>Please ensure one of these model files is present in your repository.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            return None
+            
     except Exception as e:
-        st.error(f"Error loading model: {str(e)}")
+        st.markdown(f"""
+        <div class="error-box">
+            <h3>Error Loading Model</h3>
+            <p>An error occurred while loading the model: {str(e)}</p>
+            <p>Please check that the model file is properly formatted and accessible.</p>
+        </div>
+        """, unsafe_allow_html=True)
         return None
 
 def get_prediction_label(prediction):
