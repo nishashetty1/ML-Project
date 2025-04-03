@@ -67,20 +67,37 @@ st.markdown("""
 @st.cache_resource
 def load_model():
     try:
-        # Print current directory contents for debugging
-        current_dir = os.listdir('.')
-        st.write("Available files:", current_dir)
+        # Get the repository root directory
+        repo_root = os.path.dirname(os.path.abspath(__file__))
         
-        model_path = 'retinopathy_model.joblib'
-        scaler_path = 'retinopathy_scaler.joblib'
+        # Define paths to model files
+        model_path = os.path.join(repo_root, 'retinopathy_model.joblib')
+        scaler_path = os.path.join(repo_root, 'retinopathy_scaler.joblib')
+        
+        # Debug information
+        st.write("Looking for model files in:", repo_root)
+        st.write("Available files:", os.listdir(repo_root))
         
         # Check if both files exist
         if not os.path.exists(model_path):
-            st.error(f"Model file {model_path} not found!")
-            return None
+            st.error(f"Model file not found at: {model_path}")
+            # Try alternative path
+            alt_model_path = 'retinopathy_model.joblib'
+            if os.path.exists(alt_model_path):
+                model_path = alt_model_path
+                st.success(f"Found model at alternate path: {alt_model_path}")
+            else:
+                return None
+                
         if not os.path.exists(scaler_path):
-            st.error(f"Scaler file {scaler_path} not found!")
-            return None
+            st.error(f"Scaler file not found at: {scaler_path}")
+            # Try alternative path
+            alt_scaler_path = 'retinopathy_scaler.joblib'
+            if os.path.exists(alt_scaler_path):
+                scaler_path = alt_scaler_path
+                st.success(f"Found scaler at alternate path: {alt_scaler_path}")
+            else:
+                return None
             
         # Load the model with both files
         model = RetinopathyModel.load_model(model_path, scaler_path)
@@ -90,11 +107,11 @@ def load_model():
     except Exception as e:
         st.error(f"""
         Error loading model:
-        
+        Error type: {type(e).__name__}
         Error message: {str(e)}
         
-        Current directory contents:
-        {os.listdir('.')}
+        Current working directory: {os.getcwd()}
+        Directory contents: {os.listdir('.')}
         """)
         return None
 
