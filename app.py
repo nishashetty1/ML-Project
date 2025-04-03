@@ -67,55 +67,35 @@ st.markdown("""
 @st.cache_resource
 def load_model():
     try:
-        # Check if both required files exist
+        # Print current directory contents for debugging
+        current_dir = os.listdir('.')
+        st.write("Available files:", current_dir)
+        
         model_path = 'retinopathy_model.joblib'
         scaler_path = 'retinopathy_scaler.joblib'
         
+        # Check if both files exist
         if not os.path.exists(model_path):
-            st.markdown(f"""
-            <div class="error-box">
-                <h3>Model File Missing</h3>
-                <p>Could not find {model_path}</p>
-                <p>Current directory contents:</p>
-                <pre>{os.listdir('.')}</pre>
-            </div>
-            """, unsafe_allow_html=True)
+            st.error(f"Model file {model_path} not found!")
+            return None
+        if not os.path.exists(scaler_path):
+            st.error(f"Scaler file {scaler_path} not found!")
             return None
             
-        if not os.path.exists(scaler_path):
-            st.markdown(f"""
-            <div class="error-box">
-                <h3>Scaler File Missing</h3>
-                <p>Could not find {scaler_path}</p>
-                <p>Current directory contents:</p>
-                <pre>{os.listdir('.')}</pre>
-            </div>
-            """, unsafe_allow_html=True)
-            return None
-
         # Load the model with both files
         model = RetinopathyModel.load_model(model_path, scaler_path)
+        st.success("Model loaded successfully!")
         return model
         
     except Exception as e:
-        st.markdown(f"""
-        <div class="error-box">
-            <h3>Error Loading Model</h3>
-            <p>An error occurred while loading the model: {str(e)}</p>
-            <p>Current directory contents:</p>
-            <pre>{os.listdir('.')}</pre>
-        </div>
-        """, unsafe_allow_html=True)
-        return None
-            
-    except Exception as e:
-        st.markdown(f"""
-        <div class="error-box">
-            <h3>Error Loading Model</h3>
-            <p>An error occurred while loading the model: {str(e)}</p>
-            <p>Please check that the model file is properly formatted and accessible.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.error(f"""
+        Error loading model:
+        
+        Error message: {str(e)}
+        
+        Current directory contents:
+        {os.listdir('.')}
+        """)
         return None
 
 def get_prediction_label(prediction):
