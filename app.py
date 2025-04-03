@@ -67,29 +67,46 @@ st.markdown("""
 @st.cache_resource
 def load_model():
     try:
-        # First try loading the joblib model
-        if os.path.exists('retinopathy_model.joblib'):
-            model = RetinopathyModel.load_model('retinopathy_model.joblib', 'retinopathy_scaler.joblib')
-            return model
-        # Then try loading the h5 model
-        elif os.path.exists('dr_model.h5'):
-            from tensorflow.keras.models import load_model
-            model = RetinopathyModel()
-            model.model = load_model('dr_model.h5')
-            return model
-        else:
-            st.markdown("""
+        # Check if both required files exist
+        model_path = 'retinopathy_model.joblib'
+        scaler_path = 'retinopathy_scaler.joblib'
+        
+        if not os.path.exists(model_path):
+            st.markdown(f"""
             <div class="error-box">
-                <h3>Model Not Found</h3>
-                <p>No model file found. Looking for either:</p>
-                <ul>
-                    <li>retinopathy_model.joblib</li>
-                    <li>dr_model.h5</li>
-                </ul>
-                <p>Please ensure one of these model files is present in your repository.</p>
+                <h3>Model File Missing</h3>
+                <p>Could not find {model_path}</p>
+                <p>Current directory contents:</p>
+                <pre>{os.listdir('.')}</pre>
             </div>
             """, unsafe_allow_html=True)
             return None
+            
+        if not os.path.exists(scaler_path):
+            st.markdown(f"""
+            <div class="error-box">
+                <h3>Scaler File Missing</h3>
+                <p>Could not find {scaler_path}</p>
+                <p>Current directory contents:</p>
+                <pre>{os.listdir('.')}</pre>
+            </div>
+            """, unsafe_allow_html=True)
+            return None
+
+        # Load the model with both files
+        model = RetinopathyModel.load_model(model_path, scaler_path)
+        return model
+        
+    except Exception as e:
+        st.markdown(f"""
+        <div class="error-box">
+            <h3>Error Loading Model</h3>
+            <p>An error occurred while loading the model: {str(e)}</p>
+            <p>Current directory contents:</p>
+            <pre>{os.listdir('.')}</pre>
+        </div>
+        """, unsafe_allow_html=True)
+        return None
             
     except Exception as e:
         st.markdown(f"""
